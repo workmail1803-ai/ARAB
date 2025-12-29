@@ -36,11 +36,13 @@ export async function POST(request: NextRequest) {
 
         const supabase = createServerClient();
 
-        // Find company by code (using first part of API key or a dedicated company_code)
+        // Find company by EITHER:
+        // 1. The manual company_code column (e.g. "test")
+        // 2. The first part of the API key (e.g. "df83" for "tk_df83...")
         const { data: company, error: companyError } = await supabase
             .from('companies')
-            .select('id, name, api_key, settings')
-            .or(`api_key.ilike.${company_code}%,name.ilike.%${company_code}%`)
+            .select('id, name, api_key, company_code, settings')
+            .or(`company_code.ilike.${company_code},api_key.ilike.tk_${company_code}%`)
             .eq('is_active', true)
             .single();
 
@@ -52,19 +54,22 @@ export async function POST(request: NextRequest) {
         }
 
         // Find rider by phone number within the company
-        const { data: rider, error: riderError } = await supabase
+        // Use limit(1) to handle potential duplicates (e.g. from test data)
+        const { data: riders, error: riderError } = await supabase
             .from('riders')
             .select('id, name, phone, email, vehicle_type, status')
             .eq('company_id', company.id)
             .eq('phone', phone)
-            .single();
+            .limit(1);
 
-        if (riderError || !rider) {
+        if (riderError || !riders || riders.length === 0) {
             return NextResponse.json(
                 { error: 'Rider not found. Please contact your manager.' },
                 { status: 401 }
             );
         }
+
+        const rider = riders[0];
 
         // Check rider credentials
         const { data: credentials, error: credError } = await supabase

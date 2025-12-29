@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase';
 import { withAuth } from '@/lib/api-middleware';
+import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
+
+// Generate a unique company code (6 alphanumeric characters)
+function generateCompanyCode(): string {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed confusing chars (0, O, 1, I)
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+}
 
 // GET /api/v1/company - Get company details for authenticated user
 export async function GET(request: NextRequest) {
@@ -11,7 +22,7 @@ export async function GET(request: NextRequest) {
 
         const { data: company, error } = await supabase
             .from('companies')
-            .select('id, name, api_key, webhook_secret, settings, created_at')
+            .select('id, name, company_code, api_key, webhook_secret, settings, created_at')
             .eq('id', companyId)
             .single();
 
@@ -36,12 +47,36 @@ export async function PATCH(request: NextRequest) {
         const supabase = createServerClient();
         const body = await req.json();
 
-        const { name, webhook_secret, settings } = body;
+        const { name, webhook_secret, settings, regenerate_company_code } = body;
 
         const updates: Record<string, unknown> = {};
         if (name !== undefined) updates.name = name;
         if (webhook_secret !== undefined) updates.webhook_secret = webhook_secret;
         if (settings !== undefined) updates.settings = settings;
+        
+        // Generate or regenerate company code
+        if (regenerate_company_code) {
+            let codeIsUnique = false;
+            let newCode = generateCompanyCode();
+            let attempts = 0;
+            
+            while (!codeIsUnique && attempts < 10) {
+                const { data: existingCode } = await supabase
+                    .from('companies')
+                    .select('id')
+                    .ilike('company_code', newCode)
+                    .neq('id', companyId)
+                    .single();
+                
+                if (!existingCode) {
+                    codeIsUnique = true;
+                } else {
+                    newCode = generateCompanyCode();
+                    attempts++;
+                }
+            }
+            updates.company_code = newCode;
+        }
 
         if (Object.keys(updates).length === 0) {
             return NextResponse.json(
@@ -54,7 +89,7 @@ export async function PATCH(request: NextRequest) {
             .from('companies')
             .update(updates)
             .eq('id', companyId)
-            .select('id, name, api_key, webhook_secret, settings')
+            .select('id, name, company_code, api_key, webhook_secret, settings')
             .single();
 
         if (error) {

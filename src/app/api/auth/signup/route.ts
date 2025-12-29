@@ -16,6 +16,16 @@ function generateWebhookSecret(): string {
     return `whsec_${crypto.randomBytes(32).toString('hex')}`;
 }
 
+// Generate a unique company code (6 alphanumeric characters)
+function generateCompanyCode(): string {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed confusing chars (0, O, 1, I)
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+}
+
 // POST /api/auth/signup - Register a new company
 export async function POST(request: NextRequest) {
     try {
@@ -59,6 +69,26 @@ export async function POST(request: NextRequest) {
         // Generate API key and webhook secret
         const apiKey = generateApiKey();
         const webhookSecret = generateWebhookSecret();
+        const companyCode = generateCompanyCode();
+
+        // Ensure company code is unique
+        let codeIsUnique = false;
+        let finalCode = companyCode;
+        let attempts = 0;
+        while (!codeIsUnique && attempts < 10) {
+            const { data: existingCode } = await supabase
+                .from('companies')
+                .select('id')
+                .ilike('company_code', finalCode)
+                .single();
+            
+            if (!existingCode) {
+                codeIsUnique = true;
+            } else {
+                finalCode = generateCompanyCode();
+                attempts++;
+            }
+        }
 
         // Create company
         const { data: company, error } = await supabase
@@ -70,6 +100,7 @@ export async function POST(request: NextRequest) {
                 password_hash: passwordHash,
                 api_key: apiKey,
                 webhook_secret: webhookSecret,
+                company_code: finalCode,
                 plan: 'free',
                 settings: {},
             })
@@ -91,6 +122,7 @@ export async function POST(request: NextRequest) {
                 id: company.id,
                 name: company.name,
                 email: company.email,
+                company_code: finalCode, // Code for riders to use in Agent app
                 api_key: apiKey, // Only shown once at registration
                 webhook_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks`,
                 webhook_secret: webhookSecret, // Only shown once at registration
