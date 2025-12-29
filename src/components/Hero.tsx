@@ -43,13 +43,13 @@ export default function Hero() {
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                             <Link
-                                href="#get-started"
+                                href="/signup"
                                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#3366FF] hover:bg-[#1e40af] text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-[#3366FF]/25"
                             >
                                 Get Started
                             </Link>
                             <Link
-                                href="#demo"
+                                href="/connect"
                                 className="inline-flex items-center justify-center gap-2 px-8 py-4 text-[#3366FF] font-semibold transition-all hover:bg-[#3366FF]/5 rounded-xl"
                             >
                                 Talk to Sales

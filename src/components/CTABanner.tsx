@@ -30,7 +30,7 @@ export default function CTABanner() {
                             Start Your 14 Days Free Trial
                         </p>
                         <Link
-                            href="#get-started"
+                            href="/signup"
                             className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-[#00BFA5] font-semibold rounded-xl transition-all hover:shadow-xl hover:scale-105"
                         >
                             Get Started

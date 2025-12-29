@@ -54,7 +54,7 @@ export default function Footer() {
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <Link
-                                href="#signup"
+                                href="/signup"
                                 className="px-8 py-4 bg-white text-[#00BFA5] font-semibold rounded-lg hover:bg-gray-100 transition-colors"
                             >
                                 Start Free Trial

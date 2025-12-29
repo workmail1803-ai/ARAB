@@ -73,13 +73,13 @@ export default function Navbar() {
                     {/* Desktop CTA Buttons */}
                     <div className="hidden lg:flex items-center gap-4">
                         <Link
-                            href="#login"
+                            href="/login"
                             className="px-5 py-2.5 text-[#3366FF] hover:text-[#1e40af] font-medium transition-colors"
                         >
                             Log In
                         </Link>
                         <Link
-                            href="#signup"
+                            href="/signup"
                             className="px-6 py-2.5 bg-[#3366FF] hover:bg-[#1e40af] text-white font-semibold rounded-lg transition-colors"
                         >
                             Free Sign Up
@@ -226,14 +226,16 @@ export default function Navbar() {
                             ))}
                             <div className="pt-4 border-t border-gray-100 space-y-3">
                                 <Link
-                                    href="#login"
+                                    href="/login"
                                     className="block w-full py-2.5 text-center text-[#3366FF] font-medium"
+                                    onClick={() => setIsOpen(false)}
                                 >
                                     Log In
                                 </Link>
                                 <Link
-                                    href="#signup"
+                                    href="/signup"
                                     className="block w-full py-2.5 text-center bg-[#3366FF] hover:bg-[#1e40af] text-white font-semibold rounded-lg transition-colors"
+                                    onClick={() => setIsOpen(false)}
                                 >
                                     Free Sign Up
                                 </Link>
