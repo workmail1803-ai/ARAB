@@ -24,6 +24,7 @@ import {
     BookOpen,
     Key,
     Map,
+    Plug,
 } from "lucide-react";
 
 interface SettingsSidebarProps {
@@ -37,6 +38,7 @@ const menuSections = [
             { icon: Palette, label: "Theme Settings", href: "/dashboard/settings/theme" },
             { icon: User, label: "Profile", href: "/dashboard/settings/profile" },
             { icon: Map, label: "Map Configuration", href: "/dashboard/settings/map" },
+            { icon: Plug, label: "Integrations", href: "/dashboard/settings/integrations" },
         ],
     },
     {

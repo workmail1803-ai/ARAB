@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 export interface MapSettings {
     id: string | null;
     company_id: string;
-    map_type: 'google' | 'mappr';
+    map_type: 'google' | 'mappr' | 'openstreetmap' | 'leaflet';
     real_time_tracking: boolean;
     web_key: string;
     android_key: string;
@@ -16,7 +16,7 @@ export interface MapSettings {
 const defaultMapSettings: MapSettings = {
     id: null,
     company_id: '',
-    map_type: 'google',
+    map_type: 'openstreetmap',  // Default to free OpenStreetMap
     real_time_tracking: false,
     web_key: '',
     android_key: '',

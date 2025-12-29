@@ -5,6 +5,12 @@ export interface AuthenticatedRequest extends NextRequest {
     companyId?: string;
 }
 
+export interface AuthResult {
+    company: { id: string } | null;
+    error: string | null;
+    status: number;
+}
+
 // Validate API key and return company ID
 export async function validateApiKey(apiKey: string): Promise<string | null> {
     const supabase = createServerClient();
@@ -29,6 +35,36 @@ export async function validateApiKey(apiKey: string): Promise<string | null> {
 
     console.log('[API Auth] Company found:', data.id);
     return data.id as string;
+}
+
+// Validate API key from request and return auth result
+export async function authenticateRequest(request: NextRequest): Promise<AuthResult> {
+    const authHeader = request.headers.get('authorization');
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return {
+            company: null,
+            error: 'Missing or invalid authorization header',
+            status: 401,
+        };
+    }
+
+    const apiKey = authHeader.replace('Bearer ', '').trim();
+    const companyId = await validateApiKey(apiKey);
+
+    if (!companyId) {
+        return {
+            company: null,
+            error: 'Invalid API key',
+            status: 401,
+        };
+    }
+
+    return {
+        company: { id: companyId },
+        error: null,
+        status: 200,
+    };
 }
 
 // API authentication middleware

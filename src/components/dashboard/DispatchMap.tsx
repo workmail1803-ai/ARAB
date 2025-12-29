@@ -1,11 +1,25 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Truck, Package, MapPin, Settings, Loader2, AlertCircle } from "lucide-react";
+import { Truck, Package, MapPin, Settings, Loader2, AlertCircle, Map } from "lucide-react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { MapSettings } from "@/hooks/useMapSettings";
 import { Rider } from "@/hooks/useRiders";
 import { Order } from "@/hooks/useOrders";
+
+// Dynamically import LeafletMap to avoid SSR issues
+const LeafletMap = dynamic(() => import("./LeafletMap"), {
+    ssr: false,
+    loading: () => (
+        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+            <div className="flex flex-col items-center gap-3">
+                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                <span className="text-sm text-gray-500">Loading map...</span>
+            </div>
+        </div>
+    ),
+});
 
 interface DispatchMapProps {
     mapSettings: MapSettings;
@@ -174,35 +188,27 @@ export default function DispatchMap({
             });
     }, [mapLoaded, riders, orders, mapSettings.map_type]);
 
-    // Render unconfigured state
+    // Render unconfigured state - NOW USES LEAFLET (FREE!)
     if (!isMapConfigured && !mapLoading) {
         return (
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center p-8">
-                <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
-                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <MapPin className="w-8 h-8 text-blue-600" />
+            <div className="absolute inset-0">
+                {/* Use Leaflet/OpenStreetMap by default - FREE, no API key needed! */}
+                <LeafletMap 
+                    riders={riders} 
+                    orders={orders} 
+                />
+                {/* Optional: Show hint to configure Google Maps */}
+                <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-3 max-w-xs z-[1000]">
+                    <div className="flex items-center gap-2 mb-1">
+                        <Map className="w-4 h-4 text-green-600" />
+                        <span className="text-xs font-medium text-gray-700">OpenStreetMap (Free)</span>
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                        Map Not Configured
-                    </h3>
-                    <p className="text-gray-500 mb-6">
-                        Connect your map provider to see your riders and deliveries in real-time
-                        on the dispatch dashboard.
+                    <p className="text-[10px] text-gray-500">
+                        Using free OpenStreetMap. 
+                        <Link href="/dashboard/settings/map" className="text-blue-600 hover:underline ml-1">
+                            Configure Google Maps →
+                        </Link>
                     </p>
-                    <Link
-                        href="/dashboard/settings/map"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-                    >
-                        <Settings className="w-4 h-4" />
-                        Configure Map
-                    </Link>
-                </div>
-
-                {/* Background decoration */}
-                <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                    <div className="absolute top-10 left-10 w-32 h-32 bg-blue-200/30 rounded-full blur-2xl" />
-                    <div className="absolute bottom-10 right-10 w-48 h-48 bg-green-200/30 rounded-full blur-2xl" />
-                    <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-orange-200/30 rounded-full blur-xl" />
                 </div>
             </div>
         );
@@ -249,6 +255,25 @@ export default function DispatchMap({
                             <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
                             <span className="text-sm text-gray-500">Loading Google Maps...</span>
                         </div>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // Render Leaflet/OpenStreetMap (FREE - default option)
+    if (mapSettings.map_type === "openstreetmap" || mapSettings.map_type === "leaflet" || !mapSettings.map_type) {
+        return (
+            <div className="absolute inset-0">
+                <LeafletMap 
+                    riders={riders} 
+                    orders={orders} 
+                />
+                {/* Real-time tracking indicator */}
+                {mapSettings.real_time_tracking && (
+                    <div className="absolute top-4 right-4 flex items-center gap-2 bg-white/90 px-3 py-1.5 rounded-full shadow-sm z-[1000]">
+                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                        <span className="text-xs text-gray-600">Live Tracking</span>
                     </div>
                 )}
             </div>
