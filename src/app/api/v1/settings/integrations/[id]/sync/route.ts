@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import { validateApiKey } from "@/lib/api-middleware";
+import { authenticateRequest } from "@/lib/api-middleware";
 
 interface ExternalRider {
     id?: string;
@@ -54,7 +54,7 @@ export async function POST(
 ) {
     try {
         const { id } = await params;
-        const authResult = await validateApiKey(request);
+        const authResult = await authenticateRequest(request);
         if (authResult.error) {
             return NextResponse.json(
                 { success: false, error: authResult.error },
